@@ -5,7 +5,14 @@ import { defineConfig } from 'wxt'
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      // The 500 kB warning is a *network-transfer* default; this is a disk-loaded extension, so it
+      // doesn't apply. The only chunks over it are the inference worker (Transformers.js, on its own
+      // thread) and the lazy `cloud` chunk (AI SDK, fetched only on a cloud run) — neither is on the
+      // panel's eager path. Raised, not chased down with further splitting (no user-visible payoff).
+      chunkSizeWarningLimit: 600
+    }
   }),
   manifest: {
     name: 'Local Resumer',

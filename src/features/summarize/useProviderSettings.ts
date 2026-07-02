@@ -7,13 +7,11 @@
  * live locally too, so encryption would be security theater, not security. The user can delete a key
  * at any time (the delete button calls `clearApiKey`).
  *
- * `zod` validates the stored shape so a corrupt/legacy value can never crash the panel.
+ * A stored key is validated with a plain type/length guard (a non-empty string) so a corrupt or
+ * legacy value can never crash the panel — this is not a security boundary, so no schema library.
  */
 import type { CloudProvider } from '@/src/shared/models'
 import { useCallback, useEffect, useState } from 'react'
-import { z } from 'zod'
-
-const apiKeySchema = z.string().min(1)
 
 /** Storage key holding a provider's API key. */
 function providerKeyStorageKey(provider: CloudProvider): string {
@@ -50,8 +48,9 @@ export function useProviderApiKey(
 
     const read = () =>
       chrome.storage.local.get(storageKey).then((stored) => {
-        const parsed = apiKeySchema.safeParse(stored[storageKey])
-        setLoaded({ provider, key: parsed.success ? parsed.data : null })
+        const raw = stored[storageKey]
+        const key = typeof raw === 'string' && raw.length > 0 ? raw : null
+        setLoaded({ provider, key })
       })
 
     void read()
