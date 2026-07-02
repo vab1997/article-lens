@@ -104,94 +104,13 @@ export function StatusView({
         />
       )
 
-    case 'summarizing': {
-      const { phase, done, total, partials, streamingText } = state
-      // Cloud streaming: show the answer typing in as raw text (parsed to a clean layout on done).
-      if (typeof streamingText === 'string') {
-        const { estTokens, estCostUsd } = state
-        return (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Spinner />
-                <h2 className="text-[15px] font-semibold">
-                  Summarizing the article…
-                </h2>
-              </div>
-              {estTokens !== undefined && (
-                <span
-                  className="shrink-0 text-xs text-muted-foreground"
-                  title="Estimated for this run — cancel below if it's too much. Actual shows on completion."
-                >
-                  ~{formatTokens(estTokens)}
-                  {estCostUsd !== undefined
-                    ? ` · ~${formatCost(estCostUsd)}`
-                    : ''}
-                </span>
-              )}
-            </div>
-            {streamingText ? (
-              <pre className="rounded-md border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap text-muted-foreground">
-                {streamingText}
-              </pre>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Waiting for the provider…
-              </p>
-            )}
-          </div>
-        )
-      }
-      const hasProgress = typeof total === 'number' && total > 0
-      const pct = hasProgress
-        ? Math.round(((done ?? 0) / total) * 100)
-        : undefined
-      const title =
-        phase === 'reduce'
-          ? 'Combining the summary…'
-          : hasProgress
-            ? 'Summarizing the article…'
-            : 'Summarizing…'
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Spinner />
-            <h2 className="text-[15px] font-semibold">{title}</h2>
-          </div>
-          {hasProgress ? (
-            <>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-200 ease-linear"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {phase === 'reduce' ? 'Combining' : 'Chunk'} {done ?? 0} /{' '}
-                {total}
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Running the model locally on your GPU.
-            </p>
-          )}
-          {partials && partials.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              {partials.map((notes, i) => (
-                <div
-                  key={i}
-                  className="animate-in rounded-md border border-border bg-muted/40 p-2 text-xs whitespace-pre-wrap text-muted-foreground duration-300 fill-mode-both fade-in slide-in-from-bottom-1"
-                  style={{ animationDelay: `${i * 30}ms` }}
-                >
-                  {notes}
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
+    case 'summarizing':
+      // Cloud streams raw text as it arrives; local reports map/reduce progress + partials.
+      return typeof state.streamingText === 'string' ? (
+        <CloudStreamingStatus state={state} />
+      ) : (
+        <LocalProgressStatus state={state} />
       )
-    }
 
     case 'error':
       return (
@@ -203,6 +122,94 @@ export function StatusView({
         </div>
       )
   }
+}
+
+type SummarizingState = Extract<SummaryState, { status: 'summarizing' }>
+
+/** Cloud run: the provider's answer typing in as raw text (parsed to a clean layout on done). */
+function CloudStreamingStatus({ state }: { state: SummarizingState }) {
+  const { streamingText, estTokens, estCostUsd } = state
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Spinner />
+          <h2 className="text-[15px] font-semibold">
+            Summarizing the article…
+          </h2>
+        </div>
+        {estTokens !== undefined && (
+          <span
+            className="shrink-0 text-xs text-muted-foreground"
+            title="Estimated for this run — cancel below if it's too much. Actual shows on completion."
+          >
+            ~{formatTokens(estTokens)}
+            {estCostUsd !== undefined ? ` · ~${formatCost(estCostUsd)}` : ''}
+          </span>
+        )}
+      </div>
+      {streamingText ? (
+        <pre className="rounded-md border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap text-muted-foreground">
+          {streamingText}
+        </pre>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Waiting for the provider…
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** Local run: map/reduce progress bar + streamed per-chunk notes. */
+function LocalProgressStatus({ state }: { state: SummarizingState }) {
+  const { phase, done, total, partials } = state
+  const hasProgress = typeof total === 'number' && total > 0
+  const pct = hasProgress ? Math.round(((done ?? 0) / total) * 100) : undefined
+  const title =
+    phase === 'reduce'
+      ? 'Combining the summary…'
+      : hasProgress
+        ? 'Summarizing the article…'
+        : 'Summarizing…'
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Spinner />
+        <h2 className="text-[15px] font-semibold">{title}</h2>
+      </div>
+      {hasProgress ? (
+        <>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-200 ease-linear"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {phase === 'reduce' ? 'Combining' : 'Chunk'} {done ?? 0} / {total}
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Running the model locally on your GPU.
+        </p>
+      )}
+      {partials && partials.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          {partials.map((notes, i) => (
+            <div
+              key={i}
+              className="animate-in rounded-md border border-border bg-muted/40 p-2 text-xs whitespace-pre-wrap text-muted-foreground duration-300 fill-mode-both fade-in slide-in-from-bottom-1"
+              style={{ animationDelay: `${i * 30}ms` }}
+            >
+              {notes}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function Status({

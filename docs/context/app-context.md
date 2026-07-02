@@ -38,12 +38,21 @@ contract → **`src/shared/messages.ts`** (read this to understand the boundarie
 | Content script       | `entrypoints/content.ts`                            | Readability extraction on demand → clean text                                            |
 | Background SW        | `entrypoints/background.ts`                         | Opens the side panel                                                                     |
 
-The two backends share one shape (`src/inference/inference-backend.ts`): `useSummarize` picks by the
-active model's `kind` (`local` → worker, `cloud` → `CloudBackend`). Prompt (`prompt.ts`) and parse
-(`parse.ts`) are reused by both; only chunking/passes are local-only.
+The two backends share one shape (`src/inference/inference-backend.ts`). **`useSummarize` (v7) is a
+thin selector** over two backend hooks — `useLocalBackend` (worker) and `useCloudBackend` (cloud) —
+picked by the active model's `kind`. Each hook owns its own `SummaryState` slice and full lifecycle
+(incl. `extracting`); a `Run` object (`run.ts`: `text` + `source` + `startedAt`) is passed into each
+hook's `start()`, so neither reads shared refs. Prompt (`prompt.ts`) and parse (`parse.ts`) are
+reused by both; only chunking/passes are local-only.
 
-Layout: `src/features/summarize` (state machine, hooks, UI), `src/inference` (worker, chunk,
-tokenizer, prompt, parse, backend, cloud), `src/components/ui` (shadcn), `src/shared` (messages, types).
+**Cloud stack is lazy (v7):** `useCloudBackend` `import()`s `cloud.ts` (the Vercel AI SDK) only on a
+cloud run, so a local-first session never parses it. Pure cost estimation lives SDK-free in
+`cloud-estimate.ts` (eager). `zod` is no longer imported by app code (only transitively by the SDK
+in the lazy chunk).
+
+Layout: `src/features/summarize` (state machine, backend hooks `useLocalBackend`/`useCloudBackend` +
+thin `useSummarize`, `run.ts`, UI), `src/inference` (worker, chunk, tokenizer, prompt, parse,
+backend, cloud, cloud-estimate), `src/components/ui` (shadcn), `src/shared` (messages, types).
 
 Key inference files: `prompt.ts` (single / map / reduce prompts), `chunk.ts` (token-accurate
 chunking), `tokenizer.ts` (token counting), `parse.ts` (XML → summary).
@@ -86,6 +95,7 @@ chunking), `tokenizer.ts` (token counting), `parse.ts` (XML → summary).
 | v4  | Long articles via **chunk + map-reduce**; per-token cancel; run-metrics badges; richer scaled points                                                                                           | `docs/plans/v4-long-articles-chunk-mapreduce.md`   |
 | v5  | **Model selector** (registry) + **hardware feasibility** bar; per-model swap via worker recreation; same prompt all models                                                                     | `docs/plans/v5-model-selector-hardware.md`         |
 | v6  | **Cloud providers** (OpenAI + Anthropic) via Vercel AI SDK; `InferenceBackend` abstraction; ModelSpec union (local/cloud); per-provider keys; streaming; cost badge; WebGPU gate → local-level | `docs/plans/v6-cloud-providers.md`                 |
+| v7  | **Optimization**: lazy cloud stack (AI SDK `import()`-ed only on a cloud run → eager panel 882 → 343 kB); `zod` out of eager bundle; `useSummarize` split into `useLocalBackend` + `useCloudBackend` + `run.ts`; `StatusView` split; render-perf assessed + skipped (worker-bound)         | `docs/plans/v7-optimization.md`                   |
 
 ## Current state & deferred
 
@@ -113,6 +123,18 @@ and #11 (no XML tags in the parsed cloud output).
 
 **v5 needs browser validation (built + type-clean, not yet run on real GPU):** no-OOM on model swap;
 per-model XML-schema adherence under the shared prompt (SmolLM3 no `<think>`, Phi keeps schema).
+
+**v7 optimization (built + type/lint/build-clean, browser QA pending):** eager `sidepanel` chunk
+882 → 343 kB — the AI SDK now lives in a lazy `cloud-*.js` chunk `import()`-ed only on a cloud run
+(local-first sessions never parse it); `zod` left the eager bundle; `useSummarize` decomposed into
+`useLocalBackend` + `useCloudBackend` + `run.ts` (a `Run` object replaced the shared
+`sourceRef`/`startTimeRef`); `StatusView` `summarizing` branch split. The 500 kB build warning is
+silenced via `chunkSizeWarningLimit: 600` (remaining large chunks are the worker + lazy cloud, off
+the eager path). The `diagnostics_channel` externalization note is benign (AI SDK Node stub, guarded)
+and expected. **React render-perf was intentionally skipped** — this app's cost is inference in the
+worker, not renders, so the Vercel render-path rules have ~0 ROI here. **Pending QA:** confirm the
+cloud chunk is fetched only on the first cloud run, and that local/cloud runs + cancel + swap still
+behave (see `docs/plans/v7-optimization.md`).
 
 **Deferred:** WASM fallback (for non-WebGPU devices); Firefox polish; **KV/prefix-cache reuse across
 passes** (separate spike — unconfirmed in Transformers.js + onnxruntime-web); Vercel review findings

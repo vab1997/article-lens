@@ -13,29 +13,13 @@ import type { CloudModelSpec } from '@/src/shared/models'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI } from '@ai-sdk/openai'
 import { APICallError, streamText, type ModelMessage } from 'ai'
+import { estimateCost, estimateTokens } from './cloud-estimate'
 import {
   type InferenceBackend,
   type SummarizeOptions,
   type SummarizeResult
 } from './inference-backend'
 import { buildMessages } from './prompt'
-
-/** Rough token estimate (~4 chars/token) for the pre-run cost hint — no tokenizer download. */
-export function estimateTokens(text: string): number {
-  return Math.max(1, Math.ceil(text.length / 4))
-}
-
-/** USD cost from token counts and a model's list prices. */
-export function estimateCost(
-  spec: CloudModelSpec,
-  inputTokens: number,
-  outputTokens: number
-): number {
-  return (
-    (inputTokens / 1_000_000) * spec.inputCostPer1M +
-    (outputTokens / 1_000_000) * spec.outputCostPer1M
-  )
-}
 
 /** Build the provider-specific AI SDK language model, carrying the user's API key. */
 function resolveModel(spec: CloudModelSpec, apiKey: string) {
