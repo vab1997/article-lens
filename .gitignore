@@ -10,8 +10,3 @@ public/ort
 
 # Throwaway model test outputs
 docs/results test/
-
-# Local Claude Code tooling (not part of the extension)
-.claude/
-.agents/
-skills-lock.json
