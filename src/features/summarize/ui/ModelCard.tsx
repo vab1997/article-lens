@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/src/components/ui/card'
 import {
   CLOUD_PROVIDER_LABEL,
   isCloudModel,
+  isFreeModel,
   type ModelSpec
 } from '@/src/shared/models'
 import { memo } from 'react'
@@ -42,8 +43,14 @@ export const ModelCard = memo(function ModelCard({
                 {i18n.t('card.cloudBadge')}
               </Badge>
               <Badge variant="outline">
-                ${spec.inputCostPer1M}/${spec.outputCostPer1M}{' '}
-                {i18n.t('card.per1MTok')}
+                {isFreeModel(spec) ? (
+                  i18n.t('card.free')
+                ) : (
+                  <>
+                    ${spec.inputCostPer1M}/${spec.outputCostPer1M}{' '}
+                    {i18n.t('card.per1MTok')}
+                  </>
+                )}
               </Badge>
             </>
           ) : (
@@ -61,6 +68,13 @@ export const ModelCard = memo(function ModelCard({
             ? i18n.t('card.cloudDesc', [CLOUD_PROVIDER_LABEL[spec.provider]])
             : i18n.t('card.localDesc')}
         </p>
+
+        {/* 429s and upstream 503s are the defining UX of `:free` models — warn upfront. */}
+        {cloud && isFreeModel(spec) && (
+          <p className="text-xs text-muted-foreground">
+            {i18n.t('card.freeNote')}
+          </p>
+        )}
       </CardContent>
     </Card>
   )

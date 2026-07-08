@@ -6,9 +6,9 @@
  *    prompt and generation config are GLOBAL; the only per-model runtime values are `dtype` and
  *    `disableThinking`. Memory numbers are conservative ESTIMATES used only to label hardware
  *    feasibility; the real download size is measured at load time (`modelSize:${id}`).
- *  - **cloud** — a hosted provider model (OpenAI / Anthropic) called from the side panel via the
- *    Vercel AI SDK. Single-pass only; no weights, no VRAM. Cost numbers are list prices (per 1M
- *    tokens) for the cost badge; re-verify them when the provider changes pricing.
+ *  - **cloud** — a hosted provider model (OpenAI / Anthropic / OpenRouter) called from the side
+ *    panel via the Vercel AI SDK. Single-pass only; no weights, no VRAM. Cost numbers are list
+ *    prices (per 1M tokens) for the cost badge; re-verify them when the provider changes pricing.
  */
 import type { DataType } from '@huggingface/transformers'
 
@@ -54,9 +54,10 @@ export interface LocalModelSpec extends BaseModelSpec {
 }
 
 /** The cloud providers supported this iteration. */
-export type CloudProvider = 'openai' | 'anthropic'
+export type CloudProvider = 'openai' | 'anthropic' | 'openrouter'
 
 export const CLOUD_PROVIDER_LABEL: Record<CloudProvider, string> = {
+  openrouter: 'OpenRouter',
   openai: 'OpenAI',
   anthropic: 'Anthropic'
 }
@@ -85,6 +86,11 @@ export function isLocalModel(spec: ModelSpec): spec is LocalModelSpec {
 /** Narrowing helper: true (and refines the type) for cloud models. */
 export function isCloudModel(spec: ModelSpec): spec is CloudModelSpec {
   return spec.kind === 'cloud'
+}
+
+/** True when both list prices are $0 (OpenRouter `:free` variants). */
+export function isFreeModel(spec: CloudModelSpec): boolean {
+  return spec.inputCostPer1M === 0 && spec.outputCostPer1M === 0
 }
 
 /**
@@ -190,6 +196,40 @@ export const CLOUD_MODELS: CloudModelSpec[] = [
     outputCostPer1M: 5.0,
     note: 'Fast, capable, and cost-effective — the recommended Anthropic pick.',
     recommended: true
+  },
+  // OpenRouter `:free` variants: $0 pricing, ~20 req/min + 50/day rate limits, no uptime
+  // guarantee. Free models ROTATE on OpenRouter — re-verify these ids exist when touching this
+  // list (a delisted id surfaces as the 404 error message at run time).
+  {
+    kind: 'cloud',
+    id: 'google/gemma-4-31b-it:free',
+    label: 'Gemma 4 · 31B (free)',
+    provider: 'openrouter',
+    contextTokens: 262_144,
+    inputCostPer1M: 0,
+    outputCostPer1M: 0,
+    note: 'Free and strongly multilingual — the recommended OpenRouter pick. Free tier is rate-limited.',
+    recommended: true
+  },
+  {
+    kind: 'cloud',
+    id: 'openai/gpt-oss-120b:free',
+    label: 'GPT-OSS · 120B (free)',
+    provider: 'openrouter',
+    contextTokens: 131_072,
+    inputCostPer1M: 0,
+    outputCostPer1M: 0,
+    note: 'Free, larger open-weight model — stronger summaries, slower and less available.'
+  },
+  {
+    kind: 'cloud',
+    id: 'openai/gpt-oss-20b:free',
+    label: 'GPT-OSS · 20B (free)',
+    provider: 'openrouter',
+    contextTokens: 131_072,
+    inputCostPer1M: 0,
+    outputCostPer1M: 0,
+    note: 'Free and low-latency — the fast OpenRouter fallback.'
   }
 ]
 

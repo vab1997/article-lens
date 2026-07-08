@@ -86,8 +86,10 @@ openaiAccess:
 selector:
   aria: Model
   onDevice: On-device
-  cloudGroup: Cloud (sends text to the provider)
+  cloudProviderGroup: Cloud · $1 (sends text to the provider)
+  openrouterGroup: OpenRouter · Free models (requires API key)
   cached: cached
+  free: Free
   per1M: per 1M
   memoryWarning: This model may exceed your device's estimated memory ($1). It will still try to load.
 
@@ -95,9 +97,15 @@ selector:
 card:
   cloudBadge: Cloud
   localBadge: Local · WebGPU
+  free: Free
+  freeNote: Free tier — limited requests per day; the model may be temporarily unavailable.
   per1MTok: per 1M tok
   cloudDesc: Runs on $1. The article text is sent to the provider.
   localDesc: Reads the article on your GPU. Nothing leaves your device.
+
+# Cost badges (StatusView estimate + SummaryResult wallet badge)
+cost:
+  free: Free
 
 webgpuInfo:
   aria: About local execution

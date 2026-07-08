@@ -143,7 +143,9 @@ function CloudStreamingStatus({ state }: { state: SummarizingState }) {
             title={i18n.t('summarizing.estimateTitle')}
           >
             ~{formatTokens(estTokens)}
-            {estCostUsd !== undefined ? ` · ~${formatCost(estCostUsd)}` : ''}
+            {estCostUsd !== undefined
+              ? ` · ${estCostUsd === 0 ? i18n.t('cost.free') : `~${formatCost(estCostUsd)}`}`
+              : ''}
           </span>
         )}
       </div>

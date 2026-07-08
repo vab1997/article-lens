@@ -7,3 +7,5 @@ allowBuilds:
   onnxruntime-node: false
   protobufjs: false
   spawn-sync: false
+minimumReleaseAgeExclude:
+  - '@openrouter/ai-sdk-provider@3.0.0'

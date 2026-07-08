@@ -148,7 +148,7 @@ export function SummaryResult({
             className="gap-1 font-normal text-muted-foreground"
           >
             <Wallet className="size-3" />
-            {formatCost(costUsd)}
+            {costUsd === 0 ? i18n.t('cost.free') : formatCost(costUsd)}
           </Badge>
         )}
       </div>

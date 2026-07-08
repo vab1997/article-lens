@@ -79,17 +79,24 @@ openaiAccess:
 selector:
   aria: Modelo
   onDevice: En el dispositivo
-  cloudGroup: Cloud (envía el texto al proveedor)
+  cloudProviderGroup: Cloud · $1 (envía el texto al proveedor)
+  openrouterGroup: OpenRouter · Modelos gratis (requiere API key)
   cached: en caché
+  free: Gratis
   per1M: por 1M
   memoryWarning: Este modelo puede superar la memoria estimada de tu dispositivo ($1). Igual va a intentar cargarse.
 
 card:
   cloudBadge: Cloud
   localBadge: Local · WebGPU
+  free: Gratis
+  freeNote: Nivel gratuito — solicitudes diarias limitadas; el modelo puede no estar disponible temporalmente.
   per1MTok: por 1M tok
   cloudDesc: Corre en $1. El texto del artículo se envía al proveedor.
   localDesc: Lee el artículo en tu GPU. Nada sale de tu dispositivo.
+
+cost:
+  free: Gratis
 
 webgpuInfo:
   aria: Sobre la ejecución local
