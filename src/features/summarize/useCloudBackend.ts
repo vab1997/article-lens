@@ -1,5 +1,5 @@
 /**
- * Cloud backend — a hosted provider (OpenAI / Anthropic) call, owned as a self-contained state
+ * Cloud backend — a hosted provider (OpenAI / Anthropic / OpenRouter) call, owned as a self-contained state
  * machine. Single-pass and streaming: the provider's context window dwarfs any article, so there's
  * no chunk/map-reduce, and tokens arrive live via `onDelta`.
  *

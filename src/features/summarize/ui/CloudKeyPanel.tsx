@@ -8,7 +8,8 @@ import { useState } from 'react'
 /** Where each provider issues API keys (shown as a hint under the input). */
 const KEY_HELP: Record<CloudProvider, string> = {
   openai: 'platform.openai.com/api-keys',
-  anthropic: 'console.anthropic.com → API keys'
+  anthropic: 'console.anthropic.com → API keys',
+  openrouter: 'openrouter.ai/keys'
 }
 
 export function CloudKeyPanel({

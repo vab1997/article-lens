@@ -2,7 +2,7 @@
  * Per-provider API keys for cloud models.
  *
  * Storage = `chrome.storage.local`, plaintext, keyed per provider (`apiKey:openai` /
- * `apiKey:anthropic`). This is the right store for an extension (origin-isolated — no web page or
+ * `apiKey:anthropic` / `apiKey:openrouter`). This is the right store for an extension (origin-isolated — no web page or
  * other extension can read it). We deliberately do NOT encrypt: any client-side key would have to
  * live locally too, so encryption would be security theater, not security. The user can delete a key
  * at any time (the delete button calls `clearApiKey`).

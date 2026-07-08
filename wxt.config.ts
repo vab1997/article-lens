@@ -30,13 +30,14 @@ export default defineConfig({
       // connect-src hosts:
       //  - huggingface.co + *.hf.co: local model weights + tokenizer (redirect to HF's regional
       //    Xet CDN, e.g. us.aws.cdn.hf.co), or the browser blocks the fetch and the model never loads.
-      //  - api.openai.com + api.anthropic.com: cloud-provider inference via the AI SDK (v6). Anthropic
-      //    additionally needs the `anthropic-dangerous-direct-browser-access` request header (set in
-      //    cloud.ts) to allow a browser-origin call.
+      //  - api.openai.com + api.anthropic.com + openrouter.ai: cloud-provider inference via the
+      //    AI SDK (v6/v9). Anthropic additionally needs the `anthropic-dangerous-direct-browser-access`
+      //    request header (set in cloud.ts) to allow a browser-origin call; OpenRouter allows
+      //    browser-origin calls as-is (API lives under openrouter.ai/api/v1 — same origin).
       extension_pages:
         "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; " +
         "connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co " +
-        'https://api.openai.com https://api.anthropic.com;'
+        'https://api.openai.com https://api.anthropic.com https://openrouter.ai;'
     }
   }
 })

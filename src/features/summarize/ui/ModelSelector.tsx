@@ -16,10 +16,13 @@ import {
 import { cn } from '@/src/lib/utils'
 import {
   CLOUD_MODELS,
+  CLOUD_PROVIDER_LABEL,
   getModelSpec,
+  isFreeModel,
   isLocalModel,
   LOCAL_MODELS,
   type CloudModelSpec,
+  type CloudProvider,
   type LocalModelSpec
 } from '@/src/shared/models'
 import { AlertTriangle } from 'lucide-react'
@@ -67,11 +70,27 @@ function CloudRow({ spec }: { spec: CloudModelSpec }) {
     <span className="flex w-full items-center justify-between gap-3">
       <span className="font-medium">{spec.label}</span>
       <span className="text-xs text-muted-foreground">
-        ${spec.inputCostPer1M}/${spec.outputCostPer1M}{' '}
-        {i18n.t('selector.per1M')}
+        {isFreeModel(spec) ? (
+          i18n.t('selector.free')
+        ) : (
+          <>
+            ${spec.inputCostPer1M}/${spec.outputCostPer1M}{' '}
+            {i18n.t('selector.per1M')}
+          </>
+        )}
       </span>
     </span>
   )
+}
+
+/**
+ * Cloud models are grouped per provider so it's obvious which API key each model needs.
+ * OpenRouter gets its own label calling out that its models are free but still need a key.
+ */
+function cloudGroupLabel(provider: CloudProvider): string {
+  return provider === 'openrouter'
+    ? i18n.t('selector.openrouterGroup')
+    : i18n.t('selector.cloudProviderGroup', [CLOUD_PROVIDER_LABEL[provider]])
 }
 
 interface ModelSelectorProps {
@@ -119,14 +138,22 @@ export function ModelSelector({
               </SelectItem>
             ))}
           </SelectGroup>
-          <SelectGroup>
-            <SelectLabel>{i18n.t('selector.cloudGroup')}</SelectLabel>
-            {CLOUD_MODELS.map((m) => (
-              <SelectItem key={m.id} value={m.id} textValue={m.label}>
-                <CloudRow spec={m} />
-              </SelectItem>
-            ))}
-          </SelectGroup>
+          {(Object.keys(CLOUD_PROVIDER_LABEL) as CloudProvider[]).map(
+            (provider) => {
+              const models = CLOUD_MODELS.filter((m) => m.provider === provider)
+              if (models.length === 0) return null
+              return (
+                <SelectGroup key={provider}>
+                  <SelectLabel>{cloudGroupLabel(provider)}</SelectLabel>
+                  {models.map((m) => (
+                    <SelectItem key={m.id} value={m.id} textValue={m.label}>
+                      <CloudRow spec={m} />
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )
+            }
+          )}
         </SelectContent>
       </Select>
 

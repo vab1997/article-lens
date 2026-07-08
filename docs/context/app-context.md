@@ -9,8 +9,9 @@
 A browser extension that summarizes the article you're reading. **Local-first**: by default the AI
 model downloads once and runs **entirely on your device** in-browser via **WebGPU** — no server, no
 keys, content never leaves the machine. **Cloud escape hatch** (v6): you can opt into a hosted
-provider (OpenAI / Anthropic) with your own API key — the selector carries both modes, and choosing
-cloud shows a clear "this sends the article to the provider" notice. The summary (title + TL;DR +
+provider (OpenAI / Anthropic / OpenRouter, v9) with your own API key — the selector carries both
+modes, and choosing cloud shows a clear "this sends the article to the provider" notice. OpenRouter
+(v9) serves **free `:free` models** — a free key at openrouter.ai/keys, $0 per token. The summary (title + TL;DR +
 key points) lives in the browser **side panel**, with one-click `.md` export.
 
 ## Stack
@@ -18,8 +19,9 @@ key points) lives in the browser **side panel**, with one-click `.md` export.
 - **WXT** (extension framework) · **React + TypeScript** · side panel.
 - **Transformers.js** (`@huggingface/transformers`) — local inference over **WebGPU**, ONNX Runtime
   Web. **User-selectable model** (q4f16) from a registry; default **`onnx-community/Llama-3.2-3B-Instruct`**.
-- **Vercel AI SDK** (`ai` + `@ai-sdk/openai` + `@ai-sdk/anthropic`) — cloud inference (v6), kept
-  strictly behind `CloudBackend`. **zod** — validate persisted settings.
+- **Vercel AI SDK** (`ai` + `@ai-sdk/openai` + `@ai-sdk/anthropic` + `@openrouter/ai-sdk-provider`,
+  v9) — cloud inference (v6), kept strictly behind `CloudBackend`. **zod** — validate persisted
+  settings.
 - **Tailwind v4 + shadcn** (Radix primitives) · **react-markdown** (render) · **lucide-react** (icons).
 - **@wxt-dev/i18n** (v8) — UI labels follow the browser's UI language (`locales/en.yml` + `es.yml`,
   en = `default_locale`/fallback; typed keys via `i18n.t()`, manifest name/description localized).
@@ -66,9 +68,17 @@ chunking), `tokenizer.ts` (token counting), `parse.ts` (Markdown → summary).
   models (the unsupported view points to the Cloud option).
 - **Cloud models (v6)** are **single-pass** (provider context windows dwarf any article — no
   chunk/map-reduce). API keys live in `chrome.storage.local`, **plaintext, per-provider**
-  (`apiKey:openai` / `apiKey:anthropic`) — the right store for an extension (origin-isolated); no
-  client-side encryption (it would be security theater). Anthropic browser calls send the
-  `anthropic-dangerous-direct-browser-access` header. Cloud streams (`onDelta`); local does not.
+  (`apiKey:openai` / `apiKey:anthropic` / `apiKey:openrouter`) — the right store for an extension
+  (origin-isolated); no client-side encryption (it would be security theater). Anthropic browser
+  calls send the `anthropic-dangerous-direct-browser-access` header; **OpenRouter allows
+  browser-origin calls as-is (CORS)** — no opt-in header. Cloud streams (`onDelta`); local does not.
+- **OpenRouter free tier (v9)**: `:free` model ids, $0 pricing (UI shows "Free"/"Gratis" instead of
+  $ badges via `isFreeModel()`), rate limits ~**20 req/min + 50/day** without credits (1000/day with
+  $10 bought), **no uptime guarantee** — 429 and upstream 502/503 get dedicated user messages in
+  `cloud.ts`. Free model ids **rotate on OpenRouter** — re-verify against openrouter.ai/models when
+  touching the registry (a delisted id surfaces as the 404 message). Selector groups cloud models
+  **per provider** (which key do I need?); the OpenRouter group label calls out "free models,
+  requires API key".
 - **Model loaded once**, pipeline reused across all passes.
 - **Weights** fetched from the HF Hub on first run (~2 GB) + cached by the browser; measured size
   persisted to `chrome.storage.local`. **ORT wasm** bundled to the extension origin (`public/ort/`
@@ -112,15 +122,29 @@ chunking), `tokenizer.ts` (token counting), `parse.ts` (Markdown → summary).
 | v6  | **Cloud providers** (OpenAI + Anthropic) via Vercel AI SDK; `InferenceBackend` abstraction; ModelSpec union (local/cloud); per-provider keys; streaming; cost badge; WebGPU gate → local-level                                                                                     | `docs/plans/v6-cloud-providers.md`                                  |
 | v7  | **Optimization**: lazy cloud stack (AI SDK `import()`-ed only on a cloud run → eager panel 882 → 343 kB); `zod` out of eager bundle; `useSummarize` split into `useLocalBackend` + `useCloudBackend` + `run.ts`; `StatusView` split; render-perf assessed + skipped (worker-bound) | `docs/plans/v7-optimization.md`                                     |
 | v8  | **Markdown output** (XML schema out; parse.ts rewritten; stop-strings gone); **OpenAI model-access guide** (collapsible in CloudKeyPanel); **per-tab side panel** (spike pending); **i18n labels** (@wxt-dev/i18n, en+es)                                                          | `docs/plans/v8-markdown-output-openai-notice-per-tab-panel-i18n.md` |
+| v9  | **OpenRouter provider** (free `:free` models via `@openrouter/ai-sdk-provider`); per-provider selector groups; "Free" badges (`isFreeModel`); free-tier 429/502/503 error mapping; CSP + i18n                                                                                      | `docs/plans/v9-openrouter-free-models.md`                           |
 
 ## Current state & deferred
 
 **Works:** local WebGPU summarization, short + long (map-reduce) articles, faithful structured
 output, `.md` export, cancel, metrics, polished UI, **model selector + hardware-feasibility bar**
 (Llama-3.2-3B default, SmolLM3-3B, Phi-3.5-mini, Llama-3.2-1B). **Cloud mode (v6)** built: selector
-groups On-device / Cloud, per-provider API-key panel (password input + delete + privacy notice),
-streaming output, **live pre-run token/cost estimate** (next to Cancel) + post-run cost badge. Cloud
-registry: **`gpt-4o-mini`** (recommended), **`gpt-5-mini`** (OpenAI), **`claude-haiku-4-5`** (Anthropic).
+groups On-device + one group per provider (v9), per-provider API-key panel (password input + delete +
+privacy notice), streaming output, **live pre-run token/cost estimate** (next to Cancel) + post-run
+cost badge ("Free" when $0). Cloud registry: **`gpt-4o-mini`** (recommended), **`gpt-5-mini`**
+(OpenAI), **`claude-haiku-4-5`** (Anthropic); **OpenRouter free (v9)**:
+**`google/gemma-4-31b-it:free`** (recommended — multilingual 140+ langs, 262K ctx),
+**`openai/gpt-oss-120b:free`**, **`openai/gpt-oss-20b:free`** (ids verified on openrouter.ai
+2026-07-06 — they rotate).
+
+**v9 (built + type/lint/build-clean, browser QA pending):** OpenRouter as third provider. Adapter is
+one branch in `resolveModel` (`createOpenRouter({apiKey})` — CORS OK from the extension origin, no
+special header); `toUserMessage` provider names now come from `CLOUD_PROVIDER_LABEL`, plus free-tier
+429 and upstream-502/503 messages; `isFreeModel()` drives "Free" badges (selector row, ModelCard,
+pre-run estimate, post-run Wallet badge) + a free-tier caveat line on the card; CSP gained
+`https://openrouter.ai`; verified the SDK stays in the lazy `cloud-*.js` chunk (eager panel has only
+registry strings). **Pending QA:** real run with an OpenRouter key (streaming + cancel + cost "Free"),
+deliberate 429, OpenAI/Anthropic regression (label-lookup refactor touched their error paths).
 
 **v6 Phase-0 runtime — OpenAI verified end-to-end, Anthropic still open.** OpenAI streams a summary
 from the side panel (fetch reaches `api.openai.com`, streaming + cancel + error mapping all work); the
