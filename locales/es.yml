@@ -1,8 +1,8 @@
 # Mensajes en español. Mismo árbol de keys que en.yml (en es el fallback).
 
-extName: Local Resumer
-extDescription: Resume el artículo actual con un modelo de IA que corre localmente en tu navegador.
-actionTitle: Abrir Local Resumer
+extName: ArticleLens — AI Article Summarizer
+extDescription: Convierte cualquier artículo en un resumen claro y estructurado. IA local para privacidad o tu proveedor cloud favorito.
+actionTitle: Abrir ArticleLens
 
 status:
   checking: Verificando dispositivo…
@@ -26,7 +26,7 @@ checking:
 
 unsupported:
   title: Dispositivo aún no soportado
-  intro: 'Local Resumer ejecuta el modelo en tu GPU vía WebGPU. Para habilitarlo:'
+  intro: 'ArticleLens ejecuta los modelos locales en tu GPU vía WebGPU. Para habilitarlo:'
   cloudHint: ¿Sin WebGPU? Elegí un modelo Cloud arriba — corren en un proveedor con tu API key y no necesitan WebGPU (el texto del artículo se envía al proveedor).
   step1: 'Activá la aceleración por hardware: Configuración → Sistema → "Usar aceleración por hardware".'
   step2: Actualizá el navegador a la última versión y reinicialo.

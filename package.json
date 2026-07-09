@@ -1,6 +1,6 @@
 {
-  "name": "local-resumer",
-  "description": "Browser extension that summarizes the current article with an AI model running locally in the browser.",
+  "name": "article-lens",
+  "description": "AI-powered browser extension that turns any article into a clean, structured summary. Run models locally for privacy or use your favorite cloud provider.",
   "private": true,
   "version": "0.1.0",
   "type": "module",

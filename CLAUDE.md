@@ -19,14 +19,15 @@ the workflow rules.
 
 ## Status
 
-Shipping. Five iterations done (v1 scaffold → v5 model selector + hardware feasibility). The app
-builds and runs. See `docs/context/app-context.md` and `docs/plans/v1..v5` for detail.
+Shipping. Nine iterations done (v1 scaffold → v9 OpenRouter free models). The app builds and
+runs. See `docs/context/app-context.md` and `docs/plans/v1..v9` for detail.
 
 ## Goal
 
-Browser extension that runs an AI model **locally in the browser** (no server inference) to
-summarize the current article. Inference via Transformers.js (WebGPU). UI in the browser **side
-panel**, built with React.
+**ArticleLens** — browser extension that turns the current article into a clean, structured
+summary. **Local-first**: models run in the browser via Transformers.js (WebGPU), nothing leaves
+the device. **Optional cloud**: OpenAI / Anthropic / OpenRouter with the user's own API key.
+UI in the browser **side panel**, built with React.
 
 ## Stack
 
