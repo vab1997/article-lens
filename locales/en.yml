@@ -1,9 +1,9 @@
 # English messages (default_locale — the fallback for every unlisted browser language).
 # Nested keys are read as dot-paths via i18n.t('group.key'); $1 is a positional substitution.
 
-extName: Local Resumer
-extDescription: Summarize the current article with an AI model running locally in your browser.
-actionTitle: Open Local Resumer
+extName: ArticleLens
+extDescription: Turn any article into a clean, structured summary. Run AI models locally for privacy or use your favorite cloud provider.
+actionTitle: Open ArticleLens
 
 # Header status word (SummaryPanel)
 status:
@@ -30,7 +30,7 @@ checking:
 
 unsupported:
   title: Device not supported yet
-  intro: 'Local Resumer runs the model on your GPU via WebGPU. To enable it:'
+  intro: 'ArticleLens runs local models on your GPU via WebGPU. To enable it:'
   cloudHint: No WebGPU? Pick a Cloud model above — those run on a provider with your API key and don't need WebGPU (the article text is sent to the provider).
   step1: 'Turn on hardware acceleration: Settings → System → "Use hardware acceleration".'
   step2: Update your browser to the latest version, then restart it.

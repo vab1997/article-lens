@@ -1,37 +1,52 @@
-# Local Resumer
+# ArticleLens
 
-A browser extension that summarizes the article you're reading — **entirely on your device**.
-The AI model downloads once and runs in your browser via WebGPU. No servers, no API keys, your
-content never leaves the machine.
+AI-powered browser extension that turns any article into a clean, structured summary. Run models
+**locally for privacy** or use your favorite **cloud provider**.
+
+**Local-first**: by default the AI model downloads once and runs entirely on your device in-browser
+via WebGPU — no server, no API keys, the content never leaves the machine. **Cloud escape hatch**:
+you can opt into a hosted provider (OpenAI, Anthropic, or OpenRouter) with your own API key — the
+panel makes it explicit that cloud mode sends the article text to the provider.
 
 The summary lives in the browser **side panel**: a title, a TL;DR, and key points, with a
 one-click **Download .md** export.
 
 ## Features
 
-- **100% local inference** — the model runs in-browser with [Transformers.js] over **WebGPU**.
-  Nothing is sent to a server.
+- **Local inference by default** — the model runs in-browser with [Transformers.js] over
+  **WebGPU**. In local mode nothing is sent to a server.
+- **Cloud providers (optional)** — OpenAI / Anthropic / OpenRouter with your own API key.
+  OpenRouter serves **free `:free` models** ($0 per token — just a free key from
+  [openrouter.ai/keys](https://openrouter.ai/keys)). The UI shows a clear "sends the article to
+  the provider" notice; keys are stored locally in `chrome.storage.local`, per provider.
+- **Model selector + hardware feasibility** — pick a local model sized to your device; the panel
+  detects GPU/VRAM/RAM and warns when a model may exceed your estimated memory.
 - **Side panel UI** — React + Tailwind/shadcn; opens from the toolbar icon. Shows the model, its
   measured size, and a WebGPU info tooltip.
 - **Clean extraction** — [Mozilla Readability] pulls the real article out of the page (no nav,
   ads, or comments).
 - **Structured summary** — title + TL;DR + key points (the count scales with article length),
   rendered as Markdown.
-- **Articles of any length** — short posts run in one pass; long posts are summarized via
+- **Articles of any length** — short posts run in one pass; long posts are summarized locally via
   **chunked map-reduce** (summarize each chunk, then synthesize), with per-chunk progress and a
-  **Cancel** button.
-- **Run metrics** — elapsed time + total tokens shown on each summary.
+  **Cancel** button. Cloud models are single-pass (provider context windows fit any article).
+- **Run metrics** — elapsed time + total tokens shown on each summary; cloud runs show a cost
+  estimate up front.
 - **Markdown export** — download the summary as a `.md` file.
 - **Tab-bound results** — each summary stays pinned to the page it came from; switch tabs and the
   panel tells you the summary is for another page instead of silently showing the wrong one.
+- **Localized UI** — English and Spanish, following the browser's UI language.
 
 ## How it works
 
 Extension contexts are isolated and talk by message-passing:
 
 - **Side panel** (React) — the UI; orchestrates a run and owns the worker.
-- **Inference Web Worker** — loads the model once and generates off the UI thread. It tokenizes the
-  article and runs either a **single pass** (short) or **chunked map-reduce** (long). WebGPU only.
+- **Inference Web Worker** — loads the local model once and generates off the UI thread. It
+  tokenizes the article and runs either a **single pass** (short) or **chunked map-reduce**
+  (long). WebGPU only.
+- **Cloud backend** — cloud runs skip the worker: a single-pass, streaming call to the provider
+  via the [Vercel AI SDK], lazy-loaded so local-only sessions never pay for it.
 - **Content script** — runs Readability on demand and returns the clean article text.
 - **Background service worker** — opens the side panel from the toolbar.
 
@@ -39,20 +54,21 @@ A single run: resolve the active tab → extract its article → (single pass or
 generation → parse the model's `<title>`/`<result>`/`<points>` output → render + offer download.
 The cross-context message protocol in `src/shared/messages.ts` is the core contract.
 
-### Model
+### Local models
 
-Currently [`onnx-community/Llama-3.2-3B-Instruct`][model] (ONNX, q4f16). The first run downloads
-the weights (~2 GB) from the Hugging Face Hub and caches them in the browser; later runs load from
-cache. The ONNX Runtime WASM binaries are bundled into the extension so everything works under the
-extension's Content Security Policy.
+A registry of ONNX models (q4f16) — default [`onnx-community/Llama-3.2-3B-Instruct`][model]. The
+first run downloads the weights (~2 GB for the default) from the Hugging Face Hub and caches them
+in the browser; later runs load from cache. The ONNX Runtime WASM binaries are bundled into the
+extension so everything works under the extension's Content Security Policy.
 
-> **WebGPU is required.** If WebGPU isn't available, the panel shows a clear "device not supported"
-> message with activation steps rather than falling back to a much slower path. A WASM fallback is
-> planned.
+> **WebGPU is required for local models.** If WebGPU isn't available, local models are blocked
+> with clear activation steps — but **cloud models still work** on such devices. A WASM fallback
+> is planned.
 
 ## Requirements
 
-- A Chromium browser with WebGPU (recent Chrome / Edge).
+- A Chromium browser with WebGPU (recent Chrome / Edge) for local models — cloud models work
+  without it.
 - [pnpm](https://pnpm.io) and Node.js 20+ for development.
 
 ## Development
@@ -90,23 +106,24 @@ entrypoints/             # WXT entrypoints (thin shells)
   sidepanel/             # React app mount + Tailwind entry
 src/
   features/
-    summarize/           # the feature: state machine, hooks, UI, markdown + metrics
+    summarize/           # the feature: state machine, backend hooks, UI, markdown + metrics
     article-extraction/  # active-tab extraction
-  inference/             # worker, WebGPU gate, prompt, chunk, tokenizer, parser
+  inference/             # worker, WebGPU gate, prompt, chunk, tokenizer, parser, cloud backend
   components/ui/         # shadcn components (button, tooltip, card, badge, skeleton)
   lib/                   # cn() util
   shared/                # typed message protocol + types (the cross-context contract)
 scripts/copy-ort.mjs     # copies ONNX Runtime wasm into public/ort/ (CSP-safe)
+locales/                 # UI strings (en, es) → _locales/ via @wxt-dev/i18n
 docs/
   context/app-context.md # living, shared app context (read this first)
-  plans/                 # iteration design docs (v1..v4)
+  plans/                 # iteration design docs (v1..v9)
 ```
 
 ## Documentation & context
 
 - **`docs/context/app-context.md`** — the living, shared context: architecture, durable decisions,
   iteration history, current state. Start here.
-- **`docs/plans/v1..v4`** — the design doc / rationale for each iteration.
+- **`docs/plans/v1..v9`** — the design doc / rationale for each iteration.
 - **`CLAUDE.md` / `AGENT.md`** — guidance for AI coding agents, including the project workflow.
 
 **Workflow** for any new feature: grill the approach (`/grill-me`) → save the plan to
@@ -114,17 +131,18 @@ docs/
 
 ## Tech stack
 
-[WXT] · React · TypeScript · [Transformers.js] (WebGPU) · Tailwind v4 + shadcn (Radix) ·
-react-markdown · lucide-react · [Mozilla Readability] · Prettier · ESLint
+[WXT] · React · TypeScript · [Transformers.js] (WebGPU) · [Vercel AI SDK] (cloud) ·
+Tailwind v4 + shadcn (Radix) · react-markdown · lucide-react · [Mozilla Readability] ·
+Prettier · ESLint
 
 ## Roadmap
 
 - WASM fallback for devices without WebGPU
-- Model selection (per-device specs)
 - KV / prefix-cache reuse across map-reduce passes (token savings)
 - Firefox polish
 
 [Transformers.js]: https://huggingface.co/docs/transformers.js
 [Mozilla Readability]: https://github.com/mozilla/readability
 [WXT]: https://wxt.dev
+[Vercel AI SDK]: https://sdk.vercel.ai
 [model]: https://huggingface.co/onnx-community/Llama-3.2-3B-Instruct

@@ -17,7 +17,7 @@ export async function checkWebGPU(): Promise<
     return {
       ok: false,
       reason:
-        'This browser does not support WebGPU, which Local Resumer needs to run the model.'
+        'This browser does not support WebGPU, which ArticleLens needs to run local models.'
     }
   }
   try {
@@ -26,7 +26,7 @@ export async function checkWebGPU(): Promise<
       return {
         ok: false,
         reason:
-          'No WebGPU adapter is available on this device. Local Resumer needs WebGPU to run.'
+          'No WebGPU adapter is available on this device. ArticleLens needs WebGPU to run local models.'
       }
     }
     return { ok: true }

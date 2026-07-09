@@ -1,4 +1,4 @@
-# Local Resumer — App Context
+# ArticleLens — App Context
 
 > Living, shared context so every session/collaborator works from the same picture.
 > **Orientation + index**: durable facts + pointers to the code (architecture truth) and
@@ -123,6 +123,7 @@ chunking), `tokenizer.ts` (token counting), `parse.ts` (Markdown → summary).
 | v7  | **Optimization**: lazy cloud stack (AI SDK `import()`-ed only on a cloud run → eager panel 882 → 343 kB); `zod` out of eager bundle; `useSummarize` split into `useLocalBackend` + `useCloudBackend` + `run.ts`; `StatusView` split; render-perf assessed + skipped (worker-bound) | `docs/plans/v7-optimization.md`                                     |
 | v8  | **Markdown output** (XML schema out; parse.ts rewritten; stop-strings gone); **OpenAI model-access guide** (collapsible in CloudKeyPanel); **per-tab side panel** (spike pending); **i18n labels** (@wxt-dev/i18n, en+es)                                                          | `docs/plans/v8-markdown-output-openai-notice-per-tab-panel-i18n.md` |
 | v9  | **OpenRouter provider** (free `:free` models via `@openrouter/ai-sdk-provider`); per-provider selector groups; "Free" badges (`isFreeModel`); free-tier 429/502/503 error mapping; CSP + i18n                                                                                      | `docs/plans/v9-openrouter-free-models.md`                           |
+| v10 | **Rename → ArticleLens** (name no longer matched local+cloud reality): manifest/locales, panel title, error strings, `package.json` (`article-lens`), README repositioned local-first + cloud, CLAUDE/AGENT goal, GitHub repo rename                                               | `docs/plans/v10-rename-articlelens.md`                              |
 
 ## Current state & deferred
 
