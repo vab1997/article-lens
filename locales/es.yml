@@ -1,6 +1,6 @@
 # Mensajes en español. Mismo árbol de keys que en.yml (en es el fallback).
 
-extName: ArticleLens
+extName: ArticleLens — AI Article Summarizer
 extDescription: Convierte cualquier artículo en un resumen claro y estructurado. IA local para privacidad o tu proveedor cloud favorito.
 actionTitle: Abrir ArticleLens
 

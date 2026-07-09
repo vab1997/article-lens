@@ -1,7 +1,7 @@
 # English messages (default_locale — the fallback for every unlisted browser language).
 # Nested keys are read as dot-paths via i18n.t('group.key'); $1 is a positional substitution.
 
-extName: ArticleLens
+extName: ArticleLens — AI Article Summarizer
 extDescription: Turn any article into a clean, structured summary. Run AI models locally for privacy or use your favorite cloud provider.
 actionTitle: Open ArticleLens
 
