@@ -24,8 +24,8 @@ CROP = (205, 15, 205 + 790, 15 + 790)
 CANVAS = 1024
 RADIUS = int(CANVAS * 0.225)  # rounded-rect corner radius
 MARK_SCALE = 0.80  # mark size relative to canvas
-GRAD_TOP = (129, 140, 248)  # indigo-400
-GRAD_BOTTOM = (167, 139, 250)  # violet-400
+GRAD_TOP = (110, 168, 254)  # --primary #6ea8fe (matches the Summarize button)
+GRAD_BOTTOM = (110, 168, 254)  # solid, same as GRAD_TOP
 
 # Alpha ramp: color distance to bg where a pixel becomes fully opaque
 FULL_TRANSPARENT = 4.0
