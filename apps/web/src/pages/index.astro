@@ -1,0 +1,123 @@
+---
+import { Puzzle } from '@lucide/astro'
+import Footer from '@/components/footer.astro'
+import GithubIcon from '@/components/github-icon.astro'
+import Layout from '@/layouts/Layout.astro'
+
+const steps = [
+  {
+    title: 'Open the side panel',
+    body: 'Click the ArticleLens icon on any article. The summary lives next to the page, pinned to its tab.'
+  },
+  {
+    title: 'Pick local or cloud',
+    body: 'Local models run <span class="font-bold text-white">100% on your device</span> via WebGPU — nothing leaves your machine. Or bring your own API key for OpenAI, Anthropic or OpenRouter (free models included).'
+  },
+  {
+    title: 'Summarize',
+    body: 'One click — the first time, Chrome asks you to allow page access. Title, TL;DR and key points; long reads are summarized chunk by chunk with live progress.'
+  },
+  {
+    title: 'Export it',
+    body: 'Download any summary as a <span class="font-bold text-white">.md</span> file.'
+  }
+]
+---
+
+<Layout>
+  <main
+    class="mx-auto flex min-h-screen max-w-7xl flex-col justify-center gap-8 px-6 py-8 text-sm lg:grid lg:grid-cols-[minmax(0,30rem)_minmax(0,42rem)] lg:content-center lg:gap-16 lg:py-10 lg:pr-8 lg:pl-12"
+  >
+    <section class="w-full max-w-2xl">
+      <div class="mb-8 flex items-center gap-4">
+        <img
+          src="/icon-128.png"
+          alt="ArticleLens logo"
+          width="56"
+          height="56"
+          class="size-14 rounded-xl"
+        />
+        <h1 class="text-2xl font-bold text-white">ArticleLens</h1>
+      </div>
+
+      <p class="mb-12 text-zinc-400">
+        AI-powered browser extension that turns any article into a clean,
+        structured summary. Run models <span class="font-bold text-white"
+          >locally for privacy</span
+        > or use your favorite cloud provider.
+      </p>
+
+      <!-- CTAs -->
+      <div class="mb-12">
+        <p class="mb-2 text-xs tracking-widest uppercase">Get it</p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex items-center gap-2 border border-zinc-800 px-4 py-3 text-xs text-zinc-500 select-none"
+            title="Pending Chrome Web Store review"
+          >
+            <Puzzle class="size-5" />
+            Chrome Web Store — coming soon
+          </span>
+
+          <a
+            href="https://github.com/vab1997/article-lens"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 border bg-white px-4 py-3 text-sm text-black transition-all duration-150 ease-out hover:bg-white/80 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+          >
+            <GithubIcon class="size-5 text-black" />
+            GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="mb-16">
+        <p class="mb-6 text-xs tracking-widest uppercase">How it works</p>
+        <div class="space-y-4">
+          {
+            steps.map((step, i) => (
+              <div class="flex gap-4">
+                <span class="shrink-0 text-zinc-600">[{i + 1}]</span>
+                <div>
+                  <p>{step.title}</p>
+                  <p class="text-muted-foreground/80" set:html={step.body} />
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <Footer class="hidden lg:flex" />
+    </section>
+
+    <section class="flex w-full items-center justify-center lg:justify-end">
+      <!-- Screenshot frame; drop the real capture at public/screenshot.png (store shot). -->
+      <div
+        class="w-full max-w-xl overflow-hidden rounded-lg border border-zinc-800"
+      >
+        <div
+          class="flex items-center gap-1.5 border-b border-zinc-800 bg-zinc-950 px-3 py-2"
+        >
+          <span class="size-2.5 rounded-full bg-zinc-700"></span>
+          <span class="size-2.5 rounded-full bg-zinc-700"></span>
+          <span class="size-2.5 rounded-full bg-zinc-700"></span>
+        </div>
+        <img
+          src="/screenshot.png"
+          alt="ArticleLens summarizing an article in the browser side panel"
+          class="block w-full"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        />
+        <div
+          class="hidden aspect-[16/10] items-center justify-center bg-zinc-950 text-zinc-600"
+        >
+          screenshot coming soon
+        </div>
+      </div>
+    </section>
+
+    <Footer class="mx-0 flex lg:hidden" />
+  </main>
+</Layout>
