@@ -53,7 +53,7 @@ Extension contexts are isolated and talk by message-passing:
 - **Background service worker** — opens the side panel from the toolbar.
 
 A single run: resolve the active tab → extract its article → (single pass or map-reduce) stateless
-generation → parse the model's `<title>`/`<result>`/`<points>` output → render + offer download.
+generation → parse the model's structured Markdown output → render + offer download.
 The cross-context message protocol in `src/shared/messages.ts` is the core contract.
 
 ### Local models
@@ -75,50 +75,59 @@ extension so everything works under the extension's Content Security Policy.
 
 ## Development
 
+pnpm monorepo: the extension lives in `apps/extension`, the product site (landing + privacy
+policy, Astro) in `apps/web`.
+
 ```bash
-pnpm install          # installs deps; postinstall copies ORT wasm into public/ort/
-pnpm dev              # dev build + HMR (Chromium)
-pnpm dev:firefox      # dev build (Firefox)
-pnpm compile          # TypeScript type-check (no emit)
-pnpm lint             # ESLint            (lint:fix to autofix)
-pnpm format           # Prettier --write  (format:check to verify)
+pnpm install          # workspace deps; postinstall copies ORT wasm into apps/extension/public/ort/
+pnpm dev:ext          # extension: dev build + HMR (Chromium)
+pnpm compile:ext      # extension: TypeScript type-check (no emit)
+pnpm lint:ext         # extension: ESLint
+pnpm dev:web          # web: astro dev
+pnpm build:web        # web: astro build
 ```
+
+(Inside `apps/extension`, the unprefixed scripts also work: `pnpm dev`, `pnpm dev:firefox`,
+`pnpm format`…)
 
 ## Build & load
 
 ```bash
-pnpm build            # production build -> .output/chrome-mv3
+pnpm build:ext        # production build -> apps/extension/.output/chrome-mv3
 ```
 
 Then load it unpacked:
 
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
-3. **Load unpacked** → select `.output/chrome-mv3/`
+3. **Load unpacked** → select `apps/extension/.output/chrome-mv3/`
 4. Open an article, click the toolbar icon, then **Summarize this page**.
 
-`pnpm zip` packages the build for store submission.
+`pnpm zip:ext` packages the build for store submission.
 
 ## Project structure
 
 ```
-entrypoints/             # WXT entrypoints (thin shells)
-  background.ts          # opens the side panel
-  content.ts             # Readability extraction on demand
-  sidepanel/             # React app mount + Tailwind entry
-src/
-  features/
-    summarize/           # the feature: state machine, backend hooks, UI, markdown + metrics
-    article-extraction/  # active-tab extraction
-  inference/             # worker, WebGPU gate, prompt, chunk, tokenizer, parser, cloud backend
-  components/ui/         # shadcn components (button, tooltip, card, badge, skeleton)
-  lib/                   # cn() util
-  shared/                # typed message protocol + types (the cross-context contract)
-scripts/copy-ort.mjs     # copies ONNX Runtime wasm into public/ort/ (CSP-safe)
-locales/                 # UI strings (en, es) → _locales/ via @wxt-dev/i18n
+apps/
+  extension/             # the browser extension (WXT + React)
+    entrypoints/         # WXT entrypoints (thin shells)
+      background.ts      # opens the side panel
+      content.ts         # Readability extraction, injected on demand
+      sidepanel/         # React app mount + Tailwind entry
+    src/
+      features/
+        summarize/           # the feature: state machine, backend hooks, UI, markdown + metrics
+        article-extraction/  # host-permission gate + on-demand injection + extraction
+      inference/         # worker, WebGPU gate, prompt, chunk, tokenizer, parser, cloud backend
+      components/ui/     # shadcn components (button, tooltip, card, badge, skeleton)
+      shared/            # typed message protocol + types (the cross-context contract)
+    scripts/             # copy-ort.mjs (postinstall), make-icons.py (brand assets)
+    locales/             # UI strings (en, es) → _locales/ via @wxt-dev/i18n
+  web/                   # product site (Astro + Tailwind): landing + privacy policy
 docs/
   context/app-context.md # living, shared app context (read this first)
-  plans/                 # iteration design docs (v1..v9)
+  plans/                 # iteration design docs (v1..v12)
+  store/                 # Chrome Web Store listing copy + dashboard answers
 ```
 
 ## Documentation & context

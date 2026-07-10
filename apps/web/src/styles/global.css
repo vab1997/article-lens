@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+
+@theme {
+  --font-sans: 'Geist Variable', sans-serif;
+  /* Dark-only site; the two tokens the pages actually use. */
+  --color-border: oklch(1 0 0 / 10%);
+  --color-muted-foreground: oklch(0.708 0 0);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    @apply bg-black font-mono text-zinc-300;
+  }
+}

@@ -1,0 +1,75 @@
+---
+import '../styles/global.css'
+import Analytics from '@vercel/analytics/astro'
+
+// Provisional Vercel domain — swap for the real one when a custom domain lands.
+export const SITE = 'https://article-lens.vercel.app'
+
+interface Props {
+  title?: string
+  description?: string
+  /** Page path for the canonical URL, e.g. '/privacy'. */
+  path?: string
+}
+
+const {
+  title = 'ArticleLens — AI Article Summarizer',
+  description = 'AI-powered browser extension that turns any article into a clean, structured summary. Run models locally for privacy or use your favorite cloud provider.',
+  path = '/'
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="canonical" href={SITE + path} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#000" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={SITE + path} />
+    <meta property="og:image" content={SITE + '/icon-128.png'} />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:site_name" content="ArticleLens" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@victorbejas" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:creator" content="@victorbejas" />
+    <meta name="twitter:image" content={SITE + '/icon-128.png'} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'ArticleLens',
+        url: SITE,
+        applicationCategory: 'BrowserApplication',
+        operatingSystem: 'Any',
+        description: description,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD'
+        },
+        author: {
+          name: 'victorbejas',
+          url: 'https://x.com/victorbejas',
+          '@type': 'Person'
+        }
+      })}
+    />
+  </head>
+  <Analytics />
+  <body class="min-h-screen bg-black font-mono text-zinc-300">
+    <slot />
+  </body>
+</html>
