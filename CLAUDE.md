@@ -29,6 +29,17 @@ summary. **Local-first**: models run in the browser via Transformers.js (WebGPU)
 the device. **Optional cloud**: OpenAI / Anthropic / OpenRouter with the user's own API key.
 UI in the browser **side panel**, built with React.
 
+## Monorepo (v12)
+
+pnpm workspace, two apps:
+
+- **`apps/extension`** — the extension (everything below refers to it).
+- **`apps/web`** — product site (Astro 6 + Tailwind v4, no React, dark terminal style mirroring
+  skillstui.sh). Landing + privacy policy (`/privacy`, `/es/privacy`). Deploys to Vercel with
+  **root directory `apps/web`**; provisional URL `https://article-lens.vercel.app`.
+
+Shared docs stay at the repo root (`docs/`), including `docs/store/` (Web Store copy).
+
 ## Stack
 
 - **WXT** — extension framework (build, dev, manifest, HMR, cross-browser). https://wxt.dev
@@ -42,17 +53,24 @@ UI in the browser **side panel**, built with React.
 
 ## Commands
 
+From the repo root (proxies in the root `package.json`):
+
 ```bash
-pnpm dev            # dev build + HMR, Chromium
-pnpm dev:firefox    # dev build, Firefox
-pnpm build          # production build -> .output/chrome-mv3
-pnpm compile        # tsc type-check (no emit)
-pnpm lint           # eslint            (lint:fix to autofix)
-pnpm format         # prettier --write  (format:check to verify)
-pnpm zip            # package for store submission
+pnpm dev:ext        # extension: dev build + HMR, Chromium
+pnpm build:ext      # extension: production build -> apps/extension/.output/chrome-mv3
+pnpm compile:ext    # extension: tsc type-check (no emit)
+pnpm lint:ext       # extension: eslint
+pnpm zip:ext        # extension: package for store submission
+pnpm dev:web        # web: astro dev
+pnpm build:web      # web: astro build
+pnpm preview:web    # web: astro preview
+pnpm lint:web       # web: eslint + prettier --check
 ```
 
-Load unpacked from `.output/chrome-mv3/` (Chrome).
+Inside `apps/extension` the original scripts still work (`pnpm dev`, `pnpm build`,
+`pnpm dev:firefox`, `pnpm format`…).
+
+Load unpacked from `apps/extension/.output/chrome-mv3/` (Chrome).
 
 ## Architecture
 

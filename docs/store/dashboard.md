@@ -53,8 +53,10 @@ site; access is used exclusively to read the page's article text on explicit use
 - **Language(s):** English + Spanish (the package ships `_locales/en` + `_locales/es`).
 - **Remote code:** **No.** All code ships in the package (ONNX Runtime WASM is bundled at
   `/ort`; model weights are data, not code, fetched from the Hugging Face Hub).
-- **Privacy policy URL:** ⚠️ PENDING — will live on the product web page (separate project).
-  Required before submitting.
+- **Privacy policy URL:** `https://article-lens.vercel.app/privacy` (source:
+  `apps/web/src/pages/privacy.astro`; ES at `/es/privacy`). ⚠️ Confirm the real Vercel project
+  URL after the first deploy — if it differs, update this and `apps/web/src/layouts/Layout.astro`
+  (`SITE`).
 - **Trader declaration:** user decision (personal, non-commercial → non-trader).
 - **Visibility:** Public.
 
@@ -66,5 +68,5 @@ site; access is used exclusively to read the page's article text on explicit use
 - [ ] Promo tile 440×280 uploaded
 - [ ] Permission justifications pasted (above)
 - [ ] Data usage form completed (above)
-- [ ] Privacy policy URL set ← **blocker until web page exists**
+- [ ] Web deployed on Vercel (root dir `apps/web`) and privacy URL confirmed
 - [ ] Contact email verified, trader status declared
