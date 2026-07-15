@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { LOCAL_MODELS, type LocalModelSpec } from '../../shared/models'
-import { isModelDownloaded } from './model-cache'
+import { LOCAL_MODELS, type LocalModelSpec } from '../../../shared/models'
+import { isModelDownloaded } from '../model-cache'
 
 const LLAMA = LOCAL_MODELS.find(
   (m) => m.id === 'onnx-community/Llama-3.2-3B-Instruct'

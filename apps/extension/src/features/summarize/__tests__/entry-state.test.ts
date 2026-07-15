@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { LOCAL_MODELS, MODEL_REGISTRY } from '../../shared/models'
-import { deriveEntryState, type EntryStateInput } from './entry-state'
+import { LOCAL_MODELS, MODEL_REGISTRY } from '../../../shared/models'
+import { deriveEntryState, type EntryStateInput } from '../entry-state'
 
 const LLAMA_3B = 'onnx-community/Llama-3.2-3B-Instruct'
 const SMOL = 'HuggingFaceTB/SmolLM3-3B-ONNX'

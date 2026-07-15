@@ -130,5 +130,8 @@ The content script is runtime-registered (v11) and injected per run via `scripti
 
 - TypeScript throughout. Keep UI (panel) and compute (worker) strictly separate; the message
   protocol is the contract — types in `src/shared/messages.ts`.
+- Tests (Vitest) live in a `__tests__/` folder INSIDE the feature they cover (e.g.
+  `src/features/summarize/__tests__/`), with relative imports (no alias resolution configured
+  for Vitest). Unit-test the pure seams; UI/worker behaviour is browser QA.
 - Prettier: `semi: false`, single quotes, `trailingComma: 'none'`, organize-imports +
   tailwindcss plugins. ESLint flat config.
