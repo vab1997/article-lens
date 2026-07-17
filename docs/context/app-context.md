@@ -130,6 +130,20 @@ chunking), `tokenizer.ts` (token counting), `parse.ts` (Markdown → summary).
 
 ## Current state & deferred
 
+**Effort en curso (2026-07-17): rediseño de la web** — `docs/efforts/web-redesign/`. **Mapa
+wayfinder CERRADO (6/6 tickets el mismo día); spec redactada
+([spec.md](../efforts/web-redesign/spec.md)) + **6 tickets de implementación en
+`web-redesign/issues/` (dependency order); siguiente paso: `/implement` uno por sesión.**
+Frontier inicial: 01 (identidad + shell i18n). Orden: 01 → 02 → {03, 05} → 04 → 06. Decidido: landing
+multi-sección EN+ES (hero → privacidad/stat-row → 4 pasos → "elige tu modelo" 3 cards → banda
+open source → CTA; nav glass, footer columnas, i18n nativo Astro) + privacy re-tokenizada (cero
+motion); identidad **B "Óptica"**: dark-only, Geist, canvas `#0b0d0e`, acento `#6ea8fe` (el
+primary de la extensión), headlines two-tone, gradient borders con glow de esquina, grain, sin
+drop-shadows (tokens completos en ticket 04); stack de animación **CSS-first + Motion vanilla**
+(~19–20 kB gzip, sin React; ticket 02); hero = demo animado browser+artículo, loop ~9 s con
+hover-pausa (coreografía en ticket 05). Skills por sesión: `/emil-design-eng`,
+`/web-animation-design`, `/animation-vocabulary`.
+
 **v13 BUILT (2026-07-14) — browser QA pending (blocking release):** the first-open
 auto-download is gone. Chooser menu on first run; explicit download CTA; worker effect gated on
 `wantWorker = local && (downloaded || downloadRequested)` (collapsed boolean — the
