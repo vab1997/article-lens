@@ -1,18 +1,315 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/geist';
 
+/*
+  Identity "Óptica" — dark-only. Exact tokens from the visual-direction ticket
+  (docs/efforts/web-redesign/tickets/04-prototype-visual-direction.md). Values are
+  copied, not re-decided. Sections consume these via Tailwind utilities (bg-surface-1,
+  text-ink, border-hairline, rounded-card…) or raw vars (motion, glow).
+*/
 @theme {
-  --font-sans: 'Geist Variable', sans-serif;
-  /* Dark-only site; the two tokens the pages actually use. */
-  --color-border: oklch(1 0 0 / 10%);
-  --color-muted-foreground: oklch(0.708 0 0);
+  /* Typography — Geist is the single family; mono only for metrics/numbers. */
+  --font-sans:
+    'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', 'Geist Mono', 'Roboto Mono', 'Menlo', monospace;
+
+  /* Palette — canvas, surface ladder, hairlines */
+  --color-canvas: #0b0d0e;
+  --color-surface-1: #121415;
+  --color-surface-2: #161819;
+  --color-surface-3: #1b1d1f;
+  --color-hairline: rgb(255 255 255 / 9%);
+  --color-hairline-strong: rgb(255 255 255 / 15%);
+
+  /* Ink */
+  --color-ink: #f5f7f8;
+  --color-muted: #9ba1a6;
+  --color-faint: #6b7075;
+
+  /* Accent = the extension's --primary, foreground par already shipping in the panel */
+  --color-accent: #6ea8fe;
+  --color-accent-fg: #0b1220;
+  --color-accent-deep: #2f6fe4;
+
+  /* Kept alive so the not-yet-retokenized privacy pages still build. */
+  --color-border: var(--color-hairline);
+  --color-muted-foreground: var(--color-muted);
+
+  /* Radii — 8 buttons / 12 cards / 14 panel */
+  --radius-btn: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+}
+
+/*
+  Non-Tailwind design tokens: motion + depth/glow. Custom properties on :root so both
+  CSS utilities and component <style> blocks can read them.
+*/
+:root {
+  /* Motion — reveal easing (out-expo); hover .16s; active scale .97. Per-gesture reveal
+     duration/shift/stagger live on the [data-reveal='blur'|'rise'] rules. */
+  --motion-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-hover-duration: 160ms;
+  --motion-hover-brightness: 1.13;
+  --motion-active-scale: 0.97;
+
+  /* Depth without drop-shadows: top-edge highlight + corner glow color */
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 6%);
+  --glow-accent: rgb(110 168 254 / 0.78);
+
+  /* CTA gradient (primary button) */
+  --cta-gradient: linear-gradient(180deg, #8fc0ff, #5c9bfd);
+
+  /* Grain tile (256px SVG, overlay blend) */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: var(--color-hairline);
   }
+
+  html {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-black font-mono text-zinc-300;
+    @apply bg-canvas text-muted font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  /* Two blue radials + grain overlay, fixed behind all content (never tints text). */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60rem 40rem at 15% -5%,
+        rgb(110 168 254 / 0.13),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 40rem at 100% 0%,
+        rgb(47 111 228 / 0.1),
+        transparent 55%
+      );
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: var(--grain);
+    background-size: 256px 256px;
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+  }
+
+  /* Headings default to ink; two-tone headlines use <strong> for the white accent. */
+  h1,
+  h2,
+  h3 {
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+  }
+
+  /* Keyboard focus — a visible accent ring on interactive elements (default outline is
+     low-contrast on the dark canvas). Only on keyboard focus, not pointer clicks. */
+  :where(a, button, [tabindex]:not([tabindex='-1'])):focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Sticky glass nav — 64px, blur(20px) saturate(1.6), canvas at 78%, hairline base. */
+  .glass-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: 64px;
+    border-bottom: 1px solid var(--color-hairline);
+    background: color-mix(in srgb, var(--color-canvas) 78%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+  }
+
+  /* Primary CTA — gradient fill, dark foreground, radius 8. */
+  .btn-primary {
+    background: var(--cta-gradient);
+    color: var(--color-accent-fg);
+    border-radius: var(--radius-btn);
+    box-shadow: var(--edge-highlight);
+    transition:
+      filter var(--motion-hover-duration) ease,
+      transform var(--motion-hover-duration) ease-out;
+  }
+  .btn-primary:hover {
+    filter: brightness(var(--motion-hover-brightness));
+  }
+  .btn-primary:active {
+    transform: scale(var(--motion-active-scale));
+  }
+
+  /* Secondary / ghost link-button — hairline border, subtle fill on hover. */
+  .btn-ghost {
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-btn);
+    color: var(--color-ink);
+    transition:
+      background-color var(--motion-hover-duration) ease,
+      border-color var(--motion-hover-duration) ease,
+      transform var(--motion-hover-duration) ease-out;
+  }
+  .btn-ghost:hover {
+    background: rgb(255 255 255 / 6%);
+    border-color: var(--color-hairline-strong);
+  }
+  .btn-ghost:active {
+    transform: scale(var(--motion-active-scale));
+  }
+
+  /* Eyebrow — 12px uppercase, accent. */
+  .eyebrow {
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  /* Two-tone headline — muted base + white <strong>, the Neon technique. Overrides the
+     base h1/h2 ink color; the emphasized phrase carries the white weight. */
+  .headline {
+    color: var(--color-muted);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
+  }
+  .headline strong {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  /* Hero headline splits into two stacked lines so each reveals in turn. */
+  .headline .hero-line {
+    display: block;
+  }
+
+  /* Elevated panel — transparent border + double background so a blue glow enters from
+     the top-left corner (gradient-border technique). Reused by the hero demo (ticket 04). */
+  .panel-frame {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: var(--radius-panel);
+    background:
+      linear-gradient(165deg, #16181a, #0d0e10) padding-box,
+      radial-gradient(125% 125% at 0% 0%, var(--glow-accent), rgb(38 40 42) 55%)
+        border-box;
+    box-shadow: var(--edge-highlight);
+  }
+
+  /* Surface card — hairline border + "corner light" (a faint radial anchored top-left)
+     over a diagonal dark gradient. Hover lifts brightness (pointer devices only). */
+  .card {
+    position: relative;
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-card);
+    background:
+      radial-gradient(120% 120% at 0 0, rgb(255 255 255 / 4%), transparent 45%),
+      linear-gradient(165deg, var(--color-surface-1), #0d0e10);
+    box-shadow: var(--edge-highlight);
+    transition:
+      filter var(--motion-hover-duration) ease,
+      border-color var(--motion-hover-duration) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover {
+      filter: brightness(var(--motion-hover-brightness));
+    }
+  }
+
+  /* Highlighted card (the On-device recommendation) — blue corner light + blue gradient
+     border, same glow family as .panel-frame. */
+  .card-hot {
+    border-color: transparent;
+    background:
+      radial-gradient(120% 120% at 0 0, rgb(110 168 254 / 14%), transparent 46%)
+        padding-box,
+      linear-gradient(165deg, #0f1520, #0c0d0e) padding-box,
+      radial-gradient(70% 80% at 0 0, var(--glow-accent), rgb(38 40 42) 58%)
+        border-box;
+  }
+
+  /*
+    Entrance reveals — progressive enhancement (html.js set pre-paint, so a no-JS render
+    shows everything). Motion's inView toggles .is-visible. Only two sections animate,
+    each with its own gesture: the hero rises from below with blur (Linear-style), the
+    model cards rise + scale. Everything else is intentionally static. Reduced motion
+    neutralizes both below. transform/opacity/filter only.
+  */
+  .js [data-reveal] {
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .js [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  /* Hero — fade + small rise + blur (the movement is carried by the blur, not distance).
+     The headline splits into two stacked lines, so "Read it once." and "Remember it
+     forever." reveal in sequence like the rest of the hero. The per-item stagger delay
+     must live AFTER the transition shorthand (the shorthand resets transition-delay). */
+  .js [data-reveal='blur'] {
+    --stagger: 100ms;
+    transform: translateY(10px);
+    filter: blur(10px);
+    transition:
+      opacity 1s var(--motion-reveal-ease),
+      transform 1s var(--motion-reveal-ease),
+      filter 1.5s var(--motion-reveal-ease);
+    transition-delay: calc(var(--i, 0) * var(--stagger));
+  }
+
+  /* Model cards — fade + rise + scale. */
+  .js [data-reveal='rise'] {
+    --stagger: 90ms;
+    transform: translateY(18px) scale(0.96);
+    transition:
+      opacity 0.9s var(--motion-reveal-ease),
+      transform 0.9s var(--motion-reveal-ease);
+    transition-delay: calc(var(--i, 0) * var(--stagger));
+  }
+}
+
+/* Reduced motion: kill every transition/animation site-wide, and show reveal content
+   in its final state (no fade, no shift). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }
